@@ -1,10 +1,12 @@
 # Powered by Dark Sky https://darksky.net/poweredby/
 import requests
 import json
+
+from config import DarkSkyAuth
 from datetime import date, timedelta
 
-API_KEY = ""
-CITY_LAT_LONG = 53.3498, -6.2603 # Defaulted to Dublin, Ireland
+API_KEY = DarkSkyAuth.API_KEY
+CITY_LAT_LONG = 33.6846, -117.8265 # Irvine, CA
 
 url = "https://api.darksky.net/forecast/{}/{},{}".format(API_KEY, *CITY_LAT_LONG)
 response = requests.get(url)

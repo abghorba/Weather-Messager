@@ -1,11 +1,13 @@
 # Twilio's API can be found https://www.twilio.com/docs/usage/api
 from twilio.rest import Client
+from config import TwilioAuth
 
 
 # Your Account Sid and Auth Token from twilio.com/console
-account_sid = ''
-auth_token = ''
-my_twilio_number = ''
+account_sid = TwilioAuth.ACCOUNT_SID
+auth_token = TwilioAuth.AUTH_TOKEN
+my_twilio_number = TwilioAuth.MY_NUMBER
+
 client = Client(account_sid, auth_token)
 
 def send_sms(text, outgoing):
