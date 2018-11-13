@@ -35,6 +35,22 @@ def incoming_sms():
             resp.message("If you want the current forecast, text: current. If you want the weekly forecast, text: weekly.")
 
         return str(resp)
+    
+    elif request.method == "GET":
+        return redirect("/")
+
+
+@application.route("/call", methods=['GET', 'POST'])
+def voice():
+    """Respond to incoming phone calls and mention the caller's city"""
+    if request.method == "POST":
+        # Start our TwiML response
+        resp = VoiceResponse()
+
+        # Play an audio file for the caller
+        resp.play('https://demo.twilio.com/docs/classic.mp3')
+
+        return str(resp)
 
     elif request.method == "GET":
         return redirect("/")
