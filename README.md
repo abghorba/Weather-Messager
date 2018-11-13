@@ -9,6 +9,7 @@ have a trial account. You can pay for the service to get rid of this.
 You will also need to get an API key from Dark Sky as well to use the app.
 
 Create a file called config.py with the following structure and fill in the blanks.
+
     class MyNumber:
         MY_NUMBER = ''
 
