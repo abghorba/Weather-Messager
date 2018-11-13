@@ -2,6 +2,7 @@ from config import MyNumber
 from sms import send_sms, send_mms
 from weather import get_current_forecast, get_weekly_forecast
 
+## Testing text reponses ##
 body = ' ange banana'
 
 # Determine the right reply for this message
@@ -27,3 +28,11 @@ else:
     print("If you want the current forecast text CURRENT.",
           "If you want the weekly forecast text WEEKLY.",
           "To change cities, text CHANGE <POSTAL CODE> or CHANGE <CITY, STATE>.")
+
+
+## Testing SMS ##
+error_message1 = ("Make sure you don't have a leading space!",
+                 "If you want the current forecast text CURRENT.",
+                 "If you want the weekly forecast text WEEKLY.",
+                 "To change cities, text CHANGE <POSTAL CODE> or CHANGE <CITY, STATE>.")
+send_sms(error_message1, MyNumber.MY_NUMBER)

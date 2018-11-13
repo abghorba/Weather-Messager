@@ -1,6 +1,5 @@
 # Imports
 from flask import Flask, render_template, request, redirect
-from twilio.twiml.messaging_response import MessagingResponse
 from twilio.twiml.voice_response import VoiceResponse
 
 # Custom imports
@@ -22,36 +21,36 @@ def incoming_sms():
     """Send a dynamic reply to an incoming text message"""
     if request.method == "POST":
         # Get the message the user sent our Twilio number
-        body = request.values.get('Body', None)
-
-        # Start our TwiML response
-        resp = MessagingResponse()
+        text_message = request.values.get('Body', None)
 
         # Determine the right reply for this message
-        if body.lower() == 'current':
+        if text_message.lower() == 'current':
             # Send the current forecast to outgoing phone number
             current_forecast, icon = get_current_forecast()
-            resp.message(send_mms(current_forecast, icon, MyNumber.MY_NUMBER))
-        elif body.lower() == 'weekly':
+            send_mms(current_forecast, icon, MyNumber.MY_NUMBER)
+        elif text_message.lower() == 'weekly':
             # Send weekly forecast to outgoing phone number.
             weekly_forecast = get_weekly_forecast()
-            resp.message(send_sms(weekly_forecast, MyNumber.MY_NUMBER))
-        elif body.lower()[:6] == 'change':
+            send_sms(weekly_forecast, MyNumber.MY_NUMBER)
+        elif text_message.lower()[:6] == 'change':
             # Change location
-            resp.message("Feature in progress!")
-        elif body[0] == ' ':
+            send_sms("Feature in progress!", MyNumber.MY_NUMBER)
+        elif text_message[0] == ' ':
             # Return error message 1
-            resp.message("Make sure you don't have a leading space!",
-                         "If you want the current forecast text CURRENT.",
-                         "If you want the weekly forecast text WEEKLY.",
-                         "To change cities, text CHANGE <POSTAL CODE> or CHANGE <CITY, STATE>.")
+            error_message1 = ("Make sure you don't have a leading space!",
+                              "If you want the current forecast text CURRENT.",
+                              "If you want the weekly forecast text WEEKLY.",
+                              "To change cities, text CHANGE <POSTAL CODE> or CHANGE <CITY, STATE>.")
+            send_sms(error_message1, MyNumber.MY_NUMBER)
         else:
             # Return error message 2
-            resp.message("If you want the current forecast text CURRENT.",
-                         "If you want the weekly forecast text WEEKLY.",
-                         "To change cities, text CHANGE <postal code> or CHANGE <city, state>.")
+            error_message2 = ("Make sure you don't have a leading space!",
+                              "If you want the current forecast text CURRENT.",
+                              "If you want the weekly forecast text WEEKLY.",
+                              "To change cities, text CHANGE <POSTAL CODE> or CHANGE <CITY, STATE>.")
+            send_sms(error_message2, MyNumber.MY_NUMBER)
 
-        return str(resp), redirect("/")
+        return True
     
     elif request.method == "GET":
         return redirect("/")
