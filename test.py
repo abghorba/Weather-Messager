@@ -31,8 +31,5 @@ else:
 
 
 ## Testing SMS ##
-error_message1 = ("Make sure you don't have a leading space!",
-                 "If you want the current forecast text CURRENT.",
-                 "If you want the weekly forecast text WEEKLY.",
-                 "To change cities, text CHANGE <POSTAL CODE> or CHANGE <CITY, STATE>.")
-send_sms(error_message1, MyNumber.MY_NUMBER)
+error_message1 = "hello world!"
+send_sms(error_message1)
