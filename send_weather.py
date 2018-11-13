@@ -1,10 +1,14 @@
-from config import MyNumber
-from sms import send_sms, send_mms
-from weather import get_current_forecast, get_weekly_forecast
+# Imports
 from flask import Flask, render_template, request, redirect
 from twilio.twiml.messaging_response import MessagingResponse
 from twilio.twiml.voice_response import VoiceResponse
 
+# Custom imports
+from config import MyNumber
+from sms import send_sms, send_mms
+from weather import get_current_forecast, get_weekly_forecast
+
+# Initialize Flask app
 application = Flask(__name__)
 
 
@@ -32,10 +36,22 @@ def incoming_sms():
             # Send weekly forecast to outgoing phone number.
             weekly_forecast = get_weekly_forecast()
             resp.message(send_sms(weekly_forecast, MyNumber.MY_NUMBER))
+        elif body.lower()[:6] == 'change':
+            # Change location
+            resp.message("Feature in progress!")
+        elif body[0] == ' ':
+            # Return error message 1
+            resp.message("Make sure you don't have a leading space! \
+                         If you want the current forecast text CURRENT. \
+                         If you want the weekly forecast text WEEKLY. \
+                         To change cities, text CHANGE <postal code> or CHANGE <city, state>.")
         else:
-            resp.message("If you want the current forecast, text: current. If you want the weekly forecast, text: weekly.")
+            # Return error message 2
+            resp.message("If you want the current forecast text CURRENT. \
+                         If you want the weekly forecast text WEEKLY. \
+                         To change cities, text CHANGE <postal code> or CHANGE <city, state>.")
 
-        return str(resp)
+        return str(resp), redirect("/")
     
     elif request.method == "GET":
         return redirect("/")
