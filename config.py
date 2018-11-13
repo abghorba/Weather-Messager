@@ -1,0 +1,10 @@
+class MyNumber:
+    MY_NUMBER = '3236056084'
+
+class TwilioAuth:
+    ACCOUNT_SID = 'AC7491686f190dd581bcd85a1865590257'
+    AUTH_TOKEN = 'a6473a62f4c840e085e022e89bbc1e16'
+    TWILIO_NUMBER = '+16572339087'
+
+class DarkSkyAuth:
+    API_KEY = '8f58c9a2a14e3bd3d90766187f114f4b'
