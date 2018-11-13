@@ -6,7 +6,7 @@ from config import TwilioAuth
 # Your Account Sid and Auth Token from twilio.com/console
 account_sid = TwilioAuth.ACCOUNT_SID
 auth_token = TwilioAuth.AUTH_TOKEN
-my_twilio_number = TwilioAuth.MY_NUMBER
+my_twilio_number = TwilioAuth.TWILIO_NUMBER
 
 client = Client(account_sid, auth_token)
 
