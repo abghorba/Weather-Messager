@@ -41,15 +41,15 @@ def incoming_sms():
             resp.message("Feature in progress!")
         elif body[0] == ' ':
             # Return error message 1
-            resp.message("Make sure you don't have a leading space! \
-                         If you want the current forecast text CURRENT. \
-                         If you want the weekly forecast text WEEKLY. \
-                         To change cities, text CHANGE <postal code> or CHANGE <city, state>.")
+            resp.message("Make sure you don't have a leading space!",
+                         "If you want the current forecast text CURRENT.",
+                         "If you want the weekly forecast text WEEKLY.",
+                         "To change cities, text CHANGE <POSTAL CODE> or CHANGE <CITY, STATE>.")
         else:
             # Return error message 2
-            resp.message("If you want the current forecast text CURRENT. \
-                         If you want the weekly forecast text WEEKLY. \
-                         To change cities, text CHANGE <postal code> or CHANGE <city, state>.")
+            resp.message("If you want the current forecast text CURRENT.",
+                         "If you want the weekly forecast text WEEKLY.",
+                         "To change cities, text CHANGE <postal code> or CHANGE <city, state>.")
 
         return str(resp), redirect("/")
     
