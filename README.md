@@ -59,11 +59,12 @@ you wish to be the default (query the database for it!) and enter them below in 
 <h3> Setting up Twilio number </h3>
 With all this, you can deploy this Flask app to AWS Elastic Beanstalk, or Heroku, etc. Copy the URL you created!
 Then you must:
-1) Go to your Twilio console
-2) Go to phone numbers
-3) Click on your phone number
-4) Scroll down and under Voice & Fax find "A Call Comes In" and copy and paste your URL with a /call after it and make sure the HTTP request is POST!
-5) Do the same as #4 for "Messaging" and have a /sms after your URL!
+
+        1) Go to your Twilio console
+        2) Go to phone numbers
+        3) Click on your phone number
+        4) Scroll down and under Voice & Fax find "A Call Comes In" and copy and paste your URL with a /call after it and make sure the HTTP request is POST!
+        5) Do the same as #4 for "Messaging" and have a /sms after your URL!
 
 Your app should be configured!
 
