@@ -8,7 +8,34 @@ have a trial account. You can pay for the service to get rid of this.
 
 You will also need to get an API key from Dark Sky as well to use the app.
 
-Create a file called config.py with the following structure and fill in the blanks.
+
+<h3> Setting up your database </h3>
+Firstly, you will need to create a PostgreSQL database to connect to. Then execute the following SQL command:
+
+        CREATE TABLE places ( country_code char(2), postal_code varchar(20), place_name varchar(180), admin_name1 varchar(100), admin_code1 varchar(20), admin_name2 varchar(100), admin_code2 varchar(20), admin_name3 varchar(100), admin_code3 varchar(20), latitude NUMERIC, longitude NUMERIC, accuracy varchar(1))
+
+Now we need to populate the table using the US.txt file. We will use the terminal to do this. First, if you don't have this set up (this part is for Mac OS):
+
+        brew install postgresql
+
+To check that it installed correctly run:
+
+        postgres --version
+
+Now we need to connect to the database! Run the following command, filling in the blanks!
+
+        psql --host="" --port=5432 --username="" --password --dbname=""
+
+You will be prompted for your password! If successful you will now be able to run commands on your PostgreSQL database! Now to populate the tables run the following command, and supplying the path to the US.txt file!
+
+        \copy places from {path to US.txt} with DELIMITER E’\t’
+
+You should get returned COPY 41440 if successful. Now the database is set up!
+
+
+<h3> Setting up your config file </h3>
+Create a file called config.py with the following structure and fill in the blanks. You will need the latitude and longitude of the city
+you wish to be the default (query the database for it!) and enter them below in default_lat and default_long, respectively.
 
     class MyNumber:
         MY_NUMBER = ''
@@ -20,9 +47,16 @@ Create a file called config.py with the following structure and fill in the blan
 
     class DarkSkyAuth:
         API_KEY = ''
+        CITY_LAT_LONG = default_lat, default_long
 
-Finally, you will need the latitude and longitude of whatever city you are interested in getting forecasted. And enter those coordinates in weather.py
+    class PostgresAuth:
+        DB_HOST= ''
+        DB_USER= '' 
+        DB_PASSWORD= ''
+        DB_NAME= ''
 
+
+<h3> Setting up Twilio number </h3>
 With all this, you can deploy this Flask app to AWS Elastic Beanstalk, or Heroku, etc. Copy the URL you created!
 Then you must:
 1) Go to your Twilio console
@@ -33,7 +67,10 @@ Then you must:
 
 Your app should be configured!
 
+
 <h2> What the app does! </h2>
-Text the app "current" if you want the current forecast!
-Text the app "weekly" if you want the weekly forecast!
+Text your Twilio number CURRENT if you want the current forecast!
+Text your Twilio number WEEKLY if you want the weekly forecast!
+Text your Twilio number CHANGE <ZIP_CODE> to change the city. Currently, this only supports using zip codes in the US. TODO: adding the feature for typing in a US city!
+
 You can even call your Twilio number for a nice surprise! :)

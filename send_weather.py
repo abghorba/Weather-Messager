@@ -3,11 +3,16 @@ from flask import Flask, render_template, request, redirect
 from twilio.twiml.voice_response import VoiceResponse
 
 # Custom imports
+from config import PostgresAuth
+from connect import connect_db
 from sms import send_sms, send_mms
-from weather import change_city, default_city, get_current_forecast, get_weekly_forecast
+from weather import change_city, default_city, get_city, get_current_forecast, get_weekly_forecast
 
 # Initialize Flask app
 application = Flask(__name__)
+
+# Connect to PostgreSQL database
+cursor = connect_db()
 
 
 @application.route("/", methods=['GET', 'POST'])
@@ -23,7 +28,15 @@ def incoming_sms():
         text_message = request.values.get('Body', None)
 
         # Determine the right reply for this message
-        if text_message.lower() == 'current':
+        if test_message.startswith(" "):
+            # Return error message 1
+            error_message1 = "Make sure you don't have a leading space! If you want the current forecast text CURRENT. If you want the weekly forecast text WEEKLY. To change cities, text CHANGE <POSTAL CODE>."
+            send_sms(error_message1)
+        elif text_message.endswith(" "):
+            # Return error message 2
+            error_message2 = "Make sure you don't have a trailing space! If you want the current forecast text CURRENT. If you want the weekly forecast text WEEKLY. To change cities, text CHANGE <POSTAL CODE>."
+            send_sms(error_message2)
+        elif text_message.lower() == 'current':
             # Send the current forecast to outgoing phone number
             current_forecast, icon = get_current_forecast()
             send_mms(current_forecast, icon)
@@ -32,21 +45,31 @@ def incoming_sms():
             weekly_forecast = get_weekly_forecast()
             send_sms(weekly_forecast)
         elif text_message.lower()[:6] == 'change':
-            # Change location
-            change_city(30, -30)
-            send_sms("Changed city to coordinates 30, -30!")
+            try:
+                _, postal_code = text_message.split()
+
+                # Query database to find city by postal code
+                cursor.execute(
+                    "SELECT latitude, longitude FROM places WHERE postal_code LIKE %s",
+                    (postal_code,)
+                )
+                city_data = cursor.fetchone()
+                latitude = float(city_data[0])
+                longitude = float(city_data[1])
+
+                # Change location
+                change_city(latitude, longitude)
+                send_sms(f"Changed city to: {get_city()}")
+            except:
+                send_sms("Invalid format. To change cities, text CHANGE <POSTAL CODE>.")
         elif text_message.lower() == 'default':
             # Change back to default location
             default_city()
-            send_sms("City changed back to default location: {}".format("Irvine, CA"))
-        elif text_message[0] == ' ':
-            # Return error message 1
-            error_message1 = "Make sure you don't have a leading space! If you want the current forecast text CURRENT. If you want the weekly forecast text WEEKLY. To change cities, text CHANGE <POSTAL CODE> or CHANGE <CITY, STATE>."
-            send_sms(error_message1)
+            send_sms(f"City changed back to default city: {get_city()}")
         else:
-            # Return error message 2
-            error_message2 = "If you want the current forecast text CURRENT. If you want the weekly forecast text WEEKLY. To change cities, text CHANGE <POSTAL CODE> or CHANGE <CITY, STATE>."
-            send_sms(error_message2)
+            # Return error message 3
+            error_message3 = "Improper usage! If you want the current forecast text CURRENT. If you want the weekly forecast text WEEKLY. To change cities, text CHANGE <POSTAL CODE>."
+            send_sms(error_message3)
 
         return redirect("/")
     

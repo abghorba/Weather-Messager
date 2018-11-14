@@ -2,6 +2,7 @@
 import requests
 import json
 
+from connect import connect_db
 from config import DarkSkyAuth
 from datetime import date, timedelta
 
@@ -21,6 +22,18 @@ def change_city(latitude, longitude):
     CITY_LAT_LONG = latitude, longitude
 
 
+def get_city():
+    """Returns the city and state of the current city"""
+    cursor = connect_db()
+    cursor.execute("SELECT * FROM places WHERE latitude = %s AND longitude = %s", CITY_LAT_LONG)
+    city_data = cursor.fetchone()
+    city_name = city_data['place_name']
+    state = city_data['admin_code1']
+    city_state = f"{city_name}, {state}"
+
+    return city_state
+
+
 def get_weather_data():
     """Makes a GET request to the Dark Sky API"""
     url = "https://api.darksky.net/forecast/{}/{},{}".format(API_KEY, *CITY_LAT_LONG)
@@ -32,6 +45,7 @@ def get_weather_data():
 
 def get_current_forecast():
     """Parses JSON response to get current forecast"""
+    city_state = get_city()
     weather_data = get_weather_data()
     current_weather = weather_data["currently"]
     current_weather_summary = current_weather["summary"].lower()
@@ -40,10 +54,9 @@ def get_current_forecast():
     humidity = str(round(current_weather["humidity"]*100)) + "%"
     temperature = str(round(current_weather["temperature"])) + chr(176) + "F"
     icon = weather_data["currently"]["icon"]
-    current_forecast = "It is currently {}. It is {} with a temperature of {}, a {} chance of rain, and a humidity of {}.".format(current_date, current_weather_summary, temperature, chance_of_rain, humidity)
+    current_forecast = f"It is currently {current_date} in {city_state}. It is {current_weather_summary} with a temperature of {temperature}, a {chance_of_rain} chance of rain, and a humidity of {humidity}."
 
     return current_forecast, icon
-
 
 
 def get_weekly_forecast():
@@ -57,9 +70,10 @@ def get_weekly_forecast():
         daily_summary = daily_weather["summary"].replace(".","")
         tempHigh = str(round(daily_weather["temperatureHigh"])) + chr(176) + "F"
         tempLow = str(round(daily_weather["temperatureLow"])) + chr(176) + "F"
-        daily_forecast += "{}: {} with a high of {} and a low of {}. ".format(day, daily_summary, tempHigh, tempLow) + "\n"
+        daily_forecast += f"{day}: {daily_summary} with a high of {tempHigh} and a low of {tempLow}. \n"
         weekday += timedelta(days=1)
 
-    weekly_forecast = "The weekly forecast: \n" + daily_forecast
+    weekly_forecast = f"The weekly forecast for{get_city}: \n" + daily_forecast
 
     return weekly_forecast
+    

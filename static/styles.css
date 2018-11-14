@@ -1,0 +1,10 @@
+html, body {
+    background-color: blue;
+}
+
+.running {
+    text-align: center;
+    color: white;
+    font-size: 150px;
+    text-shadow: 2px 2px #000000;
+}
