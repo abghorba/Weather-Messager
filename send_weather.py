@@ -4,7 +4,7 @@ from twilio.twiml.voice_response import VoiceResponse
 
 # Custom imports
 from sms import send_sms, send_mms
-from weather import get_current_forecast, get_weekly_forecast
+from weather import change_city, default_city, get_current_forecast, get_weekly_forecast, 
 
 # Initialize Flask app
 application = Flask(__name__)
@@ -33,7 +33,12 @@ def incoming_sms():
             send_sms(weekly_forecast)
         elif text_message.lower()[:6] == 'change':
             # Change location
-            send_sms("Feature in progress!")
+            change_city(30, -30)
+            send_sms("Changed city to coordinates 30, -30!")
+        elif text_message.lower() == 'default':
+            # Change back to default location
+            default_city()
+            send_sms("City changed back to default location: {}".format("Irvine, CA"))
         elif text_message[0] == ' ':
             # Return error message 1
             error_message1 = "Make sure you don't have a leading space! If you want the current forecast text CURRENT. If you want the weekly forecast text WEEKLY. To change cities, text CHANGE <POSTAL CODE> or CHANGE <CITY, STATE>."

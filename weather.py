@@ -6,16 +6,33 @@ from config import DarkSkyAuth
 from datetime import date, timedelta
 
 API_KEY = DarkSkyAuth.API_KEY
-CITY_LAT_LONG = 33.6846, -117.8265 # Irvine, CA
+CITY_LAT_LONG = DarkSkyAuth.CITY_LAT_LONG
 
-url = "https://api.darksky.net/forecast/{}/{},{}".format(API_KEY, *CITY_LAT_LONG)
-response = requests.get(url)
-weather_data = response.json()
 
+def default_city():
+    """Changes CITY_LAT_LONG back to default"""
+    global CITY_LAT_LONG
+    CITY_LAT_LONG = DarkSkyAuth.CITY_LAT_LONG
+
+
+def change_city(latitude, longitude):
+    """Changes the city to get weather data from until reset back to default or a new city"""
+    global CITY_LAT_LONG
+    CITY_LAT_LONG = latitude, longitude
+
+
+def get_weather_data():
+    """Makes a GET request to the Dark Sky API"""
+    url = "https://api.darksky.net/forecast/{}/{},{}".format(API_KEY, *CITY_LAT_LONG)
+    response = requests.get(url)
+    data = response.json()
+
+    return data
 
 
 def get_current_forecast():
-    """Uses Dark Sky API to get the current forecast"""
+    """Parses JSON response to get current forecast"""
+    weather_data = get_weather_data()
     current_weather = weather_data["currently"]
     current_weather_summary = current_weather["summary"].lower()
     current_date = date.strftime(date.today(), '%A')
@@ -30,7 +47,8 @@ def get_current_forecast():
 
 
 def get_weekly_forecast():
-    """Uses Dark Sky API to get the weekly forecast"""
+    """Parses JSON response to get weekly forecast"""
+    weather_data = get_weather_data()
     weekly_weather = weather_data["daily"]["data"]
     weekday = date.today()
     daily_forecast = ""
