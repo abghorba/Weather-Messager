@@ -1,10 +1,11 @@
 # Imports
+import psycopg2
+import psycopg2.extras
 from flask import Flask, render_template, request, redirect
 from twilio.twiml.voice_response import VoiceResponse
 
 # Custom imports
 from config import PostgresAuth
-from connect import connect_db
 from sms import send_sms, send_mms
 from weather import change_city, default_city, get_city, get_current_forecast, get_weekly_forecast
 
@@ -12,8 +13,13 @@ from weather import change_city, default_city, get_city, get_current_forecast, g
 application = Flask(__name__)
 
 # Connect to PostgreSQL database
-cursor = connect_db()
-
+db = psycopg2.connect(
+    host=PostgresAuth.DB_HOST,
+    user=PostgresAuth.DB_USER,
+    password=PostgresAuth.DB_PASSWORD,
+    database=PostgresAuth.DB_NAME
+)
+return db.cursor(cursor_factory = psycopg2.extras.DictCursor)
 
 @application.route("/", methods=['GET', 'POST'])
 def index():

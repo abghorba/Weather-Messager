@@ -1,9 +1,10 @@
 # Powered by Dark Sky https://darksky.net/poweredby/
 import requests
 import json
+import psycopg2
+import psycopg2.extras
 
-from connect import connect_db
-from config import DarkSkyAuth
+from config import DarkSkyAuth, PostgresAuth
 from datetime import date, timedelta
 
 API_KEY = DarkSkyAuth.API_KEY
@@ -24,12 +25,20 @@ def change_city(latitude, longitude):
 
 def get_city():
     """Returns the city and state of the current city"""
-    cursor = connect_db()
+    db = psycopg2.connect(
+        host=PostgresAuth.DB_HOST,
+        user=PostgresAuth.DB_USER,
+        password=PostgresAuth.DB_PASSWORD,
+        database=PostgresAuth.DB_NAME
+    )
+    cursor = db.cursor(cursor_factory = psycopg2.extras.DictCursor)
     cursor.execute("SELECT * FROM places WHERE latitude = %s AND longitude = %s", CITY_LAT_LONG)
     city_data = cursor.fetchone()
     city_name = city_data['place_name']
     state = city_data['admin_code1']
     city_state = f"{city_name}, {state}"
+    cursor.close()
+    db.close()
 
     return city_state
 
