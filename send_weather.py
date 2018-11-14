@@ -19,7 +19,7 @@ db = psycopg2.connect(
     password=PostgresAuth.DB_PASSWORD,
     database=PostgresAuth.DB_NAME
 )
-return db.cursor(cursor_factory = psycopg2.extras.DictCursor)
+cursor = db.cursor(cursor_factory = psycopg2.extras.DictCursor)
 
 @application.route("/", methods=['GET', 'POST'])
 def index():
