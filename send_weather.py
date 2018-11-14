@@ -4,7 +4,7 @@ from twilio.twiml.voice_response import VoiceResponse
 
 # Custom imports
 from sms import send_sms, send_mms
-from weather import change_city, default_city, get_current_forecast, get_weekly_forecast, 
+from weather import change_city, default_city, get_current_forecast, get_weekly_forecast
 
 # Initialize Flask app
 application = Flask(__name__)
@@ -48,7 +48,7 @@ def incoming_sms():
             error_message2 = "If you want the current forecast text CURRENT. If you want the weekly forecast text WEEKLY. To change cities, text CHANGE <POSTAL CODE> or CHANGE <CITY, STATE>."
             send_sms(error_message2)
 
-        return True
+        return redirect("/")
     
     elif request.method == "GET":
         return redirect("/")
@@ -64,7 +64,7 @@ def voice():
         # Play an audio file for the caller
         resp.play('https://demo.twilio.com/docs/classic.mp3')
 
-        return True
+        return redirect("/")
 
     elif request.method == "GET":
         return redirect("/")
