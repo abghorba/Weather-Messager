@@ -4,8 +4,10 @@ import json
 import psycopg2
 import psycopg2.extras
 
+
 from config import DarkSkyAuth, PostgresAuth
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
+from pytz import timezone
 
 API_KEY = DarkSkyAuth.API_KEY
 CITY_LAT_LONG = DarkSkyAuth.CITY_LAT_LONG
@@ -56,9 +58,10 @@ def get_current_forecast():
     """Parses JSON response to get current forecast"""
     city_state = get_city()
     weather_data = get_weather_data()
+    tz = weather_data["timezone"]
     current_weather = weather_data["currently"]
     current_weather_summary = current_weather["summary"].lower()
-    current_date = date.strftime(date.today(), '%A')
+    current_date = date.strftime(datetime.now(timezone(tz)), '%A, %b. %d, %Y')
     chance_of_rain = str(current_weather["precipProbability"]*100) + "%"
     humidity = str(round(current_weather["humidity"]*100)) + "%"
     temperature = str(round(current_weather["temperature"])) + chr(176) + "F"
@@ -71,8 +74,9 @@ def get_current_forecast():
 def get_weekly_forecast():
     """Parses JSON response to get weekly forecast"""
     weather_data = get_weather_data()
+    tz = weather_data["timezone"]
     weekly_weather = weather_data["daily"]["data"]
-    weekday = date.today()
+    weekday = datetime.now(timezone(tz))
     daily_forecast = ""
     for daily_weather in weekly_weather:
         day = date.strftime(weekday, '%A')
@@ -82,7 +86,7 @@ def get_weekly_forecast():
         daily_forecast += f"{day}: {daily_summary} with a high of {tempHigh} and a low of {tempLow}. \n"
         weekday += timedelta(days=1)
 
-    weekly_forecast = f"The weekly forecast for{get_city}: \n" + daily_forecast
+    weekly_forecast = f"The weekly forecast for {get_city()}: \n" + daily_forecast
 
     return weekly_forecast
     
