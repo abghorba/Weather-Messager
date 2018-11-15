@@ -27,18 +27,16 @@ def change_city(latitude, longitude):
 
 def get_city():
     """Returns the city and state of the current city"""
-    db = psycopg2.connect(
-        host=PostgresAuth.DB_HOST,
-        user=PostgresAuth.DB_USER,
-        password=PostgresAuth.DB_PASSWORD,
-        database=PostgresAuth.DB_NAME
-    )
+    # Connect to database
+    db = psycopg2.connect(**PostgresAuth.PARAMS)
     cursor = db.cursor(cursor_factory = psycopg2.extras.DictCursor)
     cursor.execute("SELECT * FROM places WHERE latitude = %s AND longitude = %s", CITY_LAT_LONG)
     city_data = cursor.fetchone()
     city_name = city_data['place_name']
     state = city_data['admin_code1']
     city_state = f"{city_name}, {state}"
+
+    # Close connection to database
     cursor.close()
     db.close()
 

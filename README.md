@@ -50,10 +50,12 @@ you wish to be the default (query the database for it!) and enter them below in 
         CITY_LAT_LONG = default_lat, default_long
 
     class PostgresAuth:
-        DB_HOST= ''
-        DB_USER= '' 
-        DB_PASSWORD= ''
-        DB_NAME= ''
+        PARAMS = {
+            'host': '',
+            'user': '',
+            'password': '',
+            'database': '',
+        }   
 
 
 <h3> Setting up Twilio number </h3>

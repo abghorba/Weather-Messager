@@ -12,14 +12,6 @@ from weather import change_city, default_city, get_city, get_current_forecast, g
 # Initialize Flask app
 application = Flask(__name__)
 
-# Connect to PostgreSQL database
-db = psycopg2.connect(
-    host=PostgresAuth.DB_HOST,
-    user=PostgresAuth.DB_USER,
-    password=PostgresAuth.DB_PASSWORD,
-    database=PostgresAuth.DB_NAME
-)
-cursor = db.cursor(cursor_factory = psycopg2.extras.DictCursor)
 
 @application.route("/", methods=['GET', 'POST'])
 def index():
@@ -30,6 +22,11 @@ def index():
 def incoming_sms():
     """Send a dynamic reply to an incoming text message"""
     if request.method == "POST":
+
+        # Connect to PostgreSQL database
+        db = psycopg2.connect(**PostgresAuth.PARAMS)
+        cursor = db.cursor(cursor_factory = psycopg2.extras.DictCursor)
+
         # Get the message the user sent our Twilio number
         text_message = request.values.get('Body', None)
 
@@ -76,6 +73,10 @@ def incoming_sms():
             # Return error message 3
             error_message3 = "Improper usage! If you want the current forecast text CURRENT. If you want the weekly forecast text WEEKLY. To change cities, text CHANGE <POSTAL CODE>."
             send_sms(error_message3)
+
+        # Close database connection
+        cursor.close()
+        db.close()
 
         return redirect("/")
     
