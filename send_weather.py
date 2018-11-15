@@ -34,7 +34,7 @@ def incoming_sms():
         text_message = request.values.get('Body', None)
 
         # Determine the right reply for this message
-        if test_message.startswith(" "):
+        if text_message.startswith(" "):
             # Return error message 1
             error_message1 = "Make sure you don't have a leading space! If you want the current forecast text CURRENT. If you want the weekly forecast text WEEKLY. To change cities, text CHANGE <POSTAL CODE>."
             send_sms(error_message1)
