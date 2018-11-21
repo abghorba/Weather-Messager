@@ -1,7 +1,7 @@
 # Imports
 import psycopg2
 import psycopg2.extras
-from flask import Flask, render_template, request, redirect
+from flask import Flask, jsonify, render_template, request, redirect
 from twilio.twiml.voice_response import VoiceResponse
 
 # Custom imports

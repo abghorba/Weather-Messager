@@ -75,16 +75,16 @@ def get_weekly_forecast():
     tz = weather_data["timezone"]
     weekly_weather = weather_data["daily"]["data"]
     weekday = datetime.now(timezone(tz))
-    daily_forecast = ""
+    daily_forecasts = []
     for daily_weather in weekly_weather:
         day = date.strftime(weekday, '%A')
         daily_summary = daily_weather["summary"].replace(".","")
         tempHigh = str(round(daily_weather["temperatureHigh"])) + chr(176) + "F"
         tempLow = str(round(daily_weather["temperatureLow"])) + chr(176) + "F"
-        daily_forecast += f"{day}: {daily_summary} with a high of {tempHigh} and a low of {tempLow}. \n"
+        daily_forecasts.append(f"{day}: {daily_summary} with a high of {tempHigh} and a low of {tempLow}. \n")
         weekday += timedelta(days=1)
 
-    weekly_forecast = f"The weekly forecast for {get_city()}: \n" + daily_forecast
+    weekly_forecast = f"The weekly forecast for {get_city()}: \n{''.join(daily_forecasts)}"
 
     return weekly_forecast
     
