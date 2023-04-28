@@ -1,12 +1,11 @@
 # Powered by Dark Sky https://darksky.net/poweredby/
-import requests
 import json
+from datetime import date, datetime, timedelta
+
 import psycopg2
 import psycopg2.extras
-
-
+import requests
 from config import DarkSkyAuth, PostgresAuth
-from datetime import date, datetime, timedelta
 from pytz import timezone
 
 API_KEY = DarkSkyAuth.API_KEY
@@ -29,11 +28,11 @@ def get_city():
     """Returns the city and state of the current city"""
     # Connect to database
     db = psycopg2.connect(**PostgresAuth.PARAMS)
-    cursor = db.cursor(cursor_factory = psycopg2.extras.DictCursor)
+    cursor = db.cursor(cursor_factory=psycopg2.extras.DictCursor)
     cursor.execute("SELECT * FROM places WHERE latitude = %s AND longitude = %s", CITY_LAT_LONG)
     city_data = cursor.fetchone()
-    city_name = city_data['place_name']
-    state = city_data['admin_code1']
+    city_name = city_data["place_name"]
+    state = city_data["admin_code1"]
     city_state = f"{city_name}, {state}"
 
     # Close connection to database
@@ -59,12 +58,16 @@ def get_current_forecast():
     tz = weather_data["timezone"]
     current_weather = weather_data["currently"]
     current_weather_summary = current_weather["summary"].lower()
-    current_date = date.strftime(datetime.now(timezone(tz)), '%A, %b. %d, %Y')
-    chance_of_rain = str(current_weather["precipProbability"]*100) + "%"
-    humidity = str(round(current_weather["humidity"]*100)) + "%"
+    current_date = date.strftime(datetime.now(timezone(tz)), "%A, %b. %d, %Y")
+    chance_of_rain = str(current_weather["precipProbability"] * 100) + "%"
+    humidity = str(round(current_weather["humidity"] * 100)) + "%"
     temperature = str(round(current_weather["temperature"])) + chr(176) + "F"
     icon = weather_data["currently"]["icon"]
-    current_forecast = f"It is currently {current_date} in {city_state}. It is {current_weather_summary} with a temperature of {temperature}, a {chance_of_rain} chance of rain, and a humidity of {humidity}."
+    current_forecast = (
+        f"It is currently {current_date} in {city_state}. "
+        f"It is {current_weather_summary} with a temperature of {temperature}, a {chance_of_rain} "
+        f"chance of rain, and a humidity of {humidity}."
+    )
 
     return current_forecast, icon
 
@@ -77,8 +80,8 @@ def get_weekly_forecast():
     weekday = datetime.now(timezone(tz))
     daily_forecasts = []
     for daily_weather in weekly_weather:
-        day = date.strftime(weekday, '%A')
-        daily_summary = daily_weather["summary"].replace(".","")
+        day = date.strftime(weekday, "%A")
+        daily_summary = daily_weather["summary"].replace(".", "")
         tempHigh = str(round(daily_weather["temperatureHigh"])) + chr(176) + "F"
         tempLow = str(round(daily_weather["temperatureLow"])) + chr(176) + "F"
         daily_forecasts.append(f"{day}: {daily_summary} with a high of {tempHigh} and a low of {tempLow}. \n")
@@ -87,4 +90,3 @@ def get_weekly_forecast():
     weekly_forecast = f"The weekly forecast for {get_city()}: \n{''.join(daily_forecasts)}"
 
     return weekly_forecast
-    
