@@ -4,105 +4,82 @@ import psycopg2.extras
 
 # Custom imports
 from config import PostgresAuth
-from flask import Flask, redirect, render_template, request
+from flask import Flask, request
 from twilio.twiml.voice_response import VoiceResponse
 
-from src.sms import send_mms, send_sms
+from src.send_message import send_message
 from src.weather import change_city, default_city, get_city, get_current_forecast, get_weekly_forecast
 
 # Initialize Flask app
 application = Flask(__name__)
 
+ERROR_MESSAGE = (
+    "Sorry, I was not able to understand your request.\n"
+    "If you want the current forecast text CURRENT.\n"
+    "If you want the weekly forecast text WEEKLY.\n"
+    "To change cities, text CHANGE <POSTAL CODE>."
+)
 
-@application.route("/", methods=["GET", "POST"])
-def index():
-    return render_template("index.html")
 
-
-@application.route("/sms", methods=["GET", "POST"])
+@application.route("/sms", methods=["POST"])
 def incoming_sms():
     """Send a dynamic reply to an incoming text message"""
-    if request.method == "POST":
-        # Connect to PostgreSQL database
-        db = psycopg2.connect(**PostgresAuth.PARAMS)
-        cursor = db.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
-        # Get the message the user sent our Twilio number
-        text_message = request.values.get("Body", None)
+    # Connect to PostgreSQL database
+    db = psycopg2.connect(**PostgresAuth.PARAMS)
+    cursor = db.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
-        # Determine the right reply for this message
-        if text_message.startswith(" "):
-            # Return error message 1
-            error_message1 = (
-                "Make sure you don't have a leading space! If you want the current forecast text "
-                "CURRENT. If you want the weekly forecast text WEEKLY. To change cities, text CHANGE "
-                "<POSTAL CODE>."
-            )
-            send_sms(error_message1)
-        elif text_message.endswith(" "):
-            # Return error message 2
-            error_message2 = (
-                "Make sure you don't have a trailing space! If you want the current forecast text "
-                "CURRENT. If you want the weekly forecast text WEEKLY. To change cities, text CHANGE "
-                "<POSTAL CODE>."
-            )
-            send_sms(error_message2)
-        elif text_message.lower() == "current":
-            # Send the current forecast to outgoing phone number
-            current_forecast, icon = get_current_forecast()
-            send_mms(current_forecast, icon)
-        elif text_message.lower() == "weekly":
-            # Send weekly forecast to outgoing phone number.
-            weekly_forecast = get_weekly_forecast()
-            send_sms(weekly_forecast)
-        elif text_message.lower()[:6] == "change":
-            try:
-                _, postal_code = text_message.split()
+    # Get the message the user sent our Twilio number
+    incoming_message = request.values.get("Body", None).strip().lower()
+    message = ERROR_MESSAGE
+    media_url = None
 
-                # Query database to find city by postal code
-                cursor.execute("SELECT latitude, longitude FROM places WHERE postal_code LIKE %s", (postal_code,))
-                city_data = cursor.fetchone()
-                latitude = float(city_data[0])
-                longitude = float(city_data[1])
+    if "current" in incoming_message:
+        message, media_url = get_current_forecast()
 
-                # Change location
-                change_city(latitude, longitude)
-                send_sms(f"Changed city to: {get_city()}")
-            except:
-                send_sms("Invalid format. To change cities, text CHANGE <POSTAL CODE>.")
-        elif text_message.lower() == "default":
-            # Change back to default location
-            default_city()
-            send_sms(f"City changed back to default city: {get_city()}")
-        else:
-            # Return error message 3
-            error_message3 = (
-                "Improper usage! If you want the current forecast text CURRENT. "
-                "If you want the weekly forecast text WEEKLY. To change cities, text CHANGE <POSTAL CODE>."
-            )
-            send_sms(error_message3)
+    elif "weekly" in incoming_message:
+        message = get_weekly_forecast()
 
-        # Close database connection
-        cursor.close()
-        db.close()
+    elif "change" in incoming_message:
+        try:
+            _, postal_code = incoming_message.split()
 
-        return redirect("/")
+            # Query database to find city by postal code
+            cursor.execute("SELECT latitude, longitude FROM places WHERE postal_code LIKE %s", (postal_code,))
+            city_data = cursor.fetchone()
+            latitude = float(city_data[0])
+            longitude = float(city_data[1])
 
-    elif request.method == "GET":
-        return redirect("/")
+            # Change location
+            change_city(latitude, longitude)
+            message = f"Changed city to: {get_city()}"
+        except:
+            message = "Invalid format. To change cities, text CHANGE <POSTAL CODE>."
+
+    elif "default" in incoming_message:
+        default_city()
+        message = f"City changed back to default city: {get_city()}"
+
+    send_message(message, media_url)
+
+    # Close database connection
+    cursor.close()
+    db.close()
+
+    return message
 
 
 @application.route("/call", methods=["POST"])
 def voice():
     """Respond to incoming phone calls and mention the caller's city"""
-    if request.method == "POST":
-        # Start our TwiML response
-        resp = VoiceResponse()
 
-        # Play an audio file for the caller
-        resp.play("https://demo.twilio.com/docs/classic.mp3")
+    # Start our TwiML response
+    resp = VoiceResponse()
 
-        return redirect("/")
+    # Play an audio file for the caller
+    resp.play("https://demo.twilio.com/docs/classic.mp3")
+
+    return "Call successful"
 
 
 if __name__ == "__main__":
