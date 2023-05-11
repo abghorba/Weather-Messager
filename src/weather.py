@@ -1,12 +1,12 @@
 # Powered by Dark Sky https://darksky.net/poweredby/
-import json
 from datetime import date, datetime, timedelta
 
 import psycopg2
 import psycopg2.extras
 import requests
-from config import DarkSkyAuth, PostgresAuth
 from pytz import timezone
+
+from src.utilities import OPEN_WEATHER_API_KEY
 
 API_KEY = DarkSkyAuth.API_KEY
 CITY_LAT_LONG = DarkSkyAuth.CITY_LAT_LONG

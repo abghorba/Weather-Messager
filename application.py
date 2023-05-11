@@ -4,11 +4,11 @@ import psycopg2.extras
 
 # Custom imports
 from config import PostgresAuth
-from flask import Flask, jsonify, redirect, render_template, request
+from flask import Flask, redirect, render_template, request
 from twilio.twiml.voice_response import VoiceResponse
 
-from sms import send_mms, send_sms
-from weather import change_city, default_city, get_city, get_current_forecast, get_weekly_forecast
+from src.sms import send_mms, send_sms
+from src.weather import change_city, default_city, get_city, get_current_forecast, get_weekly_forecast
 
 # Initialize Flask app
 application = Flask(__name__)
@@ -92,7 +92,7 @@ def incoming_sms():
         return redirect("/")
 
 
-@application.route("/call", methods=["GET", "POST"])
+@application.route("/call", methods=["POST"])
 def voice():
     """Respond to incoming phone calls and mention the caller's city"""
     if request.method == "POST":
@@ -102,9 +102,6 @@ def voice():
         # Play an audio file for the caller
         resp.play("https://demo.twilio.com/docs/classic.mp3")
 
-        return redirect("/")
-
-    elif request.method == "GET":
         return redirect("/")
 
 
