@@ -19,6 +19,7 @@ TWILIO_AUTH_TOKEN=""
 TWILIO_PHONE_NUMBER=""
 MY_NUMBER=""
 POSTGRES_HOST=""
+POSTGRES_PORT=""
 POSTGRES_DATABASE=""
 POSTGRES_USER=""
 POSTGRES_PASSWORD=""
@@ -31,6 +32,7 @@ if [ ! -f ".env" ]; then
     echo "TWILIO_PHONE_NUMBER = \"$TWILIO_PHONE_NUMBER\"" >> .env
     echo "MY_NUMBER = \"$MY_NUMBER\"" >> .env
     echo "POSTGRES_HOST = \"$POSTGRES_HOST\"" >> .env
+    echo "POSTGRES_PORT = \"$POSTGRES_PORT\"" >> .env
     echo "POSTGRES_DATABASE = \"$POSTGRES_DATABASE\"" >> .env
     echo "POSTGRES_USER = \"$POSTGRES_USER\"" >> .env
     echo "POSTGRES_PASSWORD = \"$POSTGRES_PASSWORD\"" >> .env

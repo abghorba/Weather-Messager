@@ -15,6 +15,7 @@ MY_NUMBER = os.getenv("MY_NUMBER")
 class PostgresAuth:
     def __init__(self):
         self.host = os.getenv("POSTGRES_HOST")
+        self.port = os.getenv("")
         self.database = os.getenv("POSTGRES_DATABASE")
         self.user = os.getenv("POSTGRES_USER")
         self.password = os.getenv("POSTGRES_PASSWORD")

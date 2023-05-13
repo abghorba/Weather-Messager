@@ -22,8 +22,16 @@ class OpenWeatherAPIHandler:
 
         # Execute query to database
         db_handler = PostgresDatabaseHandler()
-        sql = "SELECT * FROM places WHERE latitude = %s AND longitude = %s"
-        params = (self.current_latitude, self.current_longitude)
+        sql = "SELECT * FROM places WHERE latitude BETWEEN %s AND %s AND longitude BETWEEN %s AND %s"
+
+        # Execute with a margin of safety so we don't have to be extremely precise with latitude/longitude coordinates
+        margin_of_safety = 0.01
+        params = (
+            self.current_latitude - margin_of_safety,
+            self.current_latitude + margin_of_safety,
+            self.current_longitude - margin_of_safety,
+            self.current_longitude + margin_of_safety,
+        )
         db_handler.execute_sql(sql_queries=sql, query_params=params)
 
         # Get data from the query result

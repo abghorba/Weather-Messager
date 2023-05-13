@@ -18,7 +18,7 @@ class PostgresDatabaseHandler:
         """
 
         self.database = psycopg2.connect(**vars(self.postgres_auth))
-        self.cursor = self.database.cursor(cursor_factory=psycopg2.extras.DictCursor)
+        self.cursor = self.database.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
 
         # self.database.closed only returns 0 is database connection is open
         return self.database.closed != 0
