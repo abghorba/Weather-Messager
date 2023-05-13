@@ -1,17 +1,14 @@
-# Imports
-import psycopg2
-import psycopg2.extras
-
-# Custom imports
-from config import PostgresAuth
 from flask import Flask, request
 from twilio.twiml.voice_response import VoiceResponse
 
+from database.execute_sql import PostgresDatabaseHandler
 from src.send_message import send_message
-from src.weather import change_city, default_city, get_city, get_current_forecast, get_weekly_forecast
+from src.weather import OpenWeatherAPIHandler
 
 # Initialize Flask app
 application = Flask(__name__)
+database_handler = PostgresDatabaseHandler()
+weather_api = OpenWeatherAPIHandler()
 
 ERROR_MESSAGE = (
     "Sorry, I was not able to understand your request.\n"
@@ -25,53 +22,58 @@ ERROR_MESSAGE = (
 def incoming_sms():
     """Send a dynamic reply to an incoming text message"""
 
-    # Connect to PostgreSQL database
-    db = psycopg2.connect(**PostgresAuth.PARAMS)
-    cursor = db.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    incoming_message = request.values.get("Body", None)
+    incoming_number = request.values.get("From", None)
 
-    # Get the message the user sent our Twilio number
-    incoming_message = request.values.get("Body", None).strip().lower()
+    if not (incoming_message and incoming_number):
+        return "ERROR: No incoming message or number found!"
+
+    # Clean the incoming data
+    incoming_message = incoming_message.lower().strip()
+    incoming_number = incoming_number.lower().strip()
+
     message = ERROR_MESSAGE
     media_url = None
 
     if "current" in incoming_message:
-        message, media_url = get_current_forecast()
+        message, media_url = weather_api.get_current_forecast()
 
     elif "weekly" in incoming_message:
-        message = get_weekly_forecast()
+        message = weather_api.get_weekly_forecast()
 
     elif "change" in incoming_message:
         try:
             _, postal_code = incoming_message.split()
 
             # Query database to find city by postal code
-            cursor.execute("SELECT latitude, longitude FROM places WHERE postal_code LIKE %s", (postal_code,))
-            city_data = cursor.fetchone()
+            sql = "SELECT latitude, longitude FROM places WHERE postal_code LIKE %s"
+            params = (postal_code,)
+            database_handler.execute_sql(sql_queries=sql, query_params=params)
+
+            city_data = database_handler.cursor.fetchone()
             latitude = float(city_data[0])
             longitude = float(city_data[1])
 
             # Change location
-            change_city(latitude, longitude)
-            message = f"Changed city to: {get_city()}"
+            weather_api.change_city(latitude, longitude)
+            message = f"Changed city to: {weather_api.current_city}"
+
         except:
             message = "Invalid format. To change cities, text CHANGE <POSTAL CODE>."
 
     elif "default" in incoming_message:
-        default_city()
-        message = f"City changed back to default city: {get_city()}"
+        weather_api.change_city_to_default()
+        message = f"City changed back to default city: {weather_api.current_city}"
 
     send_message(message, media_url)
-
-    # Close database connection
-    cursor.close()
-    db.close()
+    database_handler.close_database_connection()
 
     return message
 
 
 @application.route("/call", methods=["POST"])
-def voice():
-    """Respond to incoming phone calls and mention the caller's city"""
+def incoming_call():
+    """Respond to incoming phone calls"""
 
     # Start our TwiML response
     resp = VoiceResponse()

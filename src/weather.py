@@ -1,92 +1,109 @@
-# Powered by Dark Sky https://darksky.net/poweredby/
 from datetime import date, datetime, timedelta
 
-import psycopg2
-import psycopg2.extras
 import requests
 from pytz import timezone
 
+from database.execute_sql import PostgresDatabaseHandler
 from src.utilities import OPEN_WEATHER_API_KEY
 
-API_KEY = DarkSkyAuth.API_KEY
-CITY_LAT_LONG = DarkSkyAuth.CITY_LAT_LONG
 
+class OpenWeatherAPIHandler:
+    def __init__(self, default_latitude=33.684566, default_longitude=-117.826508):
+        """Defaults to Irvine, CA."""
 
-def default_city():
-    """Changes CITY_LAT_LONG back to default"""
-    global CITY_LAT_LONG
-    CITY_LAT_LONG = DarkSkyAuth.CITY_LAT_LONG
+        self.default_latitude = default_latitude
+        self.default_longitude = default_longitude
+        self.current_latitude = self.default_latitude
+        self.current_longitude = self.default_longitude
+        self.current_city = self._get_city()
 
+    def _get_city(self):
+        """Returns the city and state of the current city"""
 
-def change_city(latitude, longitude):
-    """Changes the city to get weather data from until reset back to default or a new city"""
-    global CITY_LAT_LONG
-    CITY_LAT_LONG = latitude, longitude
+        # Execute query to database
+        db_handler = PostgresDatabaseHandler()
+        sql = "SELECT * FROM places WHERE latitude = %s AND longitude = %s"
+        params = (self.current_latitude, self.current_longitude)
+        db_handler.execute_sql(sql_queries=sql, query_params=params)
 
+        # Get data from the query result
+        city_data = db_handler.cursor.fetchone()
+        city_name = city_data["place_name"]
+        state = city_data["admin_code1"]
+        city_state = f"{city_name}, {state}"
 
-def get_city():
-    """Returns the city and state of the current city"""
-    # Connect to database
-    db = psycopg2.connect(**PostgresAuth.PARAMS)
-    cursor = db.cursor(cursor_factory=psycopg2.extras.DictCursor)
-    cursor.execute("SELECT * FROM places WHERE latitude = %s AND longitude = %s", CITY_LAT_LONG)
-    city_data = cursor.fetchone()
-    city_name = city_data["place_name"]
-    state = city_data["admin_code1"]
-    city_state = f"{city_name}, {state}"
+        # Close connection to database
+        db_handler.close_database_connection()
 
-    # Close connection to database
-    cursor.close()
-    db.close()
+        return city_state
 
-    return city_state
+    def change_city(self, latitude, longitude):
+        """Changes the city to get weather data from until reset back to default or a new city"""
+        self.current_latitude, self.current_longitude = latitude, longitude
+        self.current_city = self._get_city()
 
+    def change_city_to_default(self):
+        self.change_city(self.default_latitude, self.default_longitude)
 
-def get_weather_data():
-    """Makes a GET request to the Dark Sky API"""
-    url = "https://api.darksky.net/forecast/{}/{},{}".format(API_KEY, *CITY_LAT_LONG)
-    response = requests.get(url)
-    data = response.json()
+    def get_weather_data(self):
+        """Makes a GET request to the Dark Sky API"""
 
-    return data
+        url = (
+            f"https://api.openweathermap.org/data/2.5/weather?"
+            f"lat={self.current_latitude}&lon={self.current_longitude}&appid={OPEN_WEATHER_API_KEY}"
+        )
 
+        response = requests.get(url)
+        if response.status_code != 200:
+            return None
 
-def get_current_forecast():
-    """Parses JSON response to get current forecast"""
-    city_state = get_city()
-    weather_data = get_weather_data()
-    tz = weather_data["timezone"]
-    current_weather = weather_data["currently"]
-    current_weather_summary = current_weather["summary"].lower()
-    current_date = date.strftime(datetime.now(timezone(tz)), "%A, %b. %d, %Y")
-    chance_of_rain = str(current_weather["precipProbability"] * 100) + "%"
-    humidity = str(round(current_weather["humidity"] * 100)) + "%"
-    temperature = str(round(current_weather["temperature"])) + chr(176) + "F"
-    icon = weather_data["currently"]["icon"]
-    current_forecast = (
-        f"It is currently {current_date} in {city_state}. "
-        f"It is {current_weather_summary} with a temperature of {temperature}, a {chance_of_rain} "
-        f"chance of rain, and a humidity of {humidity}."
-    )
+        data = response.json()
+        return data
 
-    return current_forecast, icon
+    def get_current_forecast(self):
+        """Parses JSON response to get current forecast"""
 
+        weather_data = self.get_weather_data()
 
-def get_weekly_forecast():
-    """Parses JSON response to get weekly forecast"""
-    weather_data = get_weather_data()
-    tz = weather_data["timezone"]
-    weekly_weather = weather_data["daily"]["data"]
-    weekday = datetime.now(timezone(tz))
-    daily_forecasts = []
-    for daily_weather in weekly_weather:
-        day = date.strftime(weekday, "%A")
-        daily_summary = daily_weather["summary"].replace(".", "")
-        tempHigh = str(round(daily_weather["temperatureHigh"])) + chr(176) + "F"
-        tempLow = str(round(daily_weather["temperatureLow"])) + chr(176) + "F"
-        daily_forecasts.append(f"{day}: {daily_summary} with a high of {tempHigh} and a low of {tempLow}. \n")
-        weekday += timedelta(days=1)
+        if not weather_data:
+            return "Error getting weather data!", None
 
-    weekly_forecast = f"The weekly forecast for {get_city()}: \n{''.join(daily_forecasts)}"
+        tz = weather_data["timezone"]
+        current_weather = weather_data["currently"]
+        current_weather_summary = current_weather["summary"].lower()
+        current_date = date.strftime(datetime.now(timezone(tz)), "%A, %b. %d, %Y")
+        chance_of_rain = str(current_weather["precipProbability"] * 100) + "%"
+        humidity = str(round(current_weather["humidity"] * 100)) + "%"
+        temperature = str(round(current_weather["temperature"])) + chr(176) + "F"
+        icon = weather_data["currently"]["icon"]
+        current_forecast = (
+            f"It is currently {current_date} in {self.current_city}. "
+            f"It is {current_weather_summary} with a temperature of {temperature}, a {chance_of_rain} "
+            f"chance of rain, and a humidity of {humidity}."
+        )
 
-    return weekly_forecast
+        return current_forecast, icon
+
+    def get_weekly_forecast(self):
+        """Parses JSON response to get weekly forecast"""
+
+        weather_data = self.get_weather_data()
+
+        if not weather_data:
+            return "Error getting weather data!", None
+
+        tz = weather_data["timezone"]
+        weekly_weather = weather_data["daily"]["data"]
+        weekday = datetime.now(timezone(tz))
+        daily_forecasts = []
+        for daily_weather in weekly_weather:
+            day = date.strftime(weekday, "%A")
+            daily_summary = daily_weather["summary"].replace(".", "")
+            temp_hi = str(round(daily_weather["temperatureHigh"])) + chr(176) + "F"
+            temp_lo = str(round(daily_weather["temperatureLow"])) + chr(176) + "F"
+            daily_forecasts.append(f"{day}: {daily_summary} with a high of {temp_hi} and a low of {temp_lo}. \n")
+            weekday += timedelta(days=1)
+
+        weekly_forecast = f"The weekly forecast for {self.current_city}: \n{''.join(daily_forecasts)}"
+
+        return weekly_forecast, None
