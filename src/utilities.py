@@ -35,7 +35,7 @@ class TwilioCredentials:
 class PostgresCredentials:
     def __init__(self):
         self.host = os.getenv("POSTGRES_HOST")
-        self.port = os.getenv("")
+        self.port = os.getenv("POSTGRES_PORT")
         self.database = os.getenv("POSTGRES_DATABASE")
         self.user = os.getenv("POSTGRES_USER")
         self.password = os.getenv("POSTGRES_PASSWORD")

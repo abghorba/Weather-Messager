@@ -28,9 +28,14 @@ create_users_table_query = """CREATE TABLE IF NOT EXISTS users (
     current_longitude NUMERIC
 );"""
 
+create_test_table_query = """CREATE TABLE IF NOT EXISTS test (
+    test_col1 VARCHAR(10),
+    test_col2 VARCHAR(10)
+);"""
+
 copy_us_txt_file_query = f"COPY places FROM '{us_txt_filepath}' WITH (FORMAT text, DELIMITER E'\t');"
 
-sql_queries = [create_places_table_query, copy_us_txt_file_query]
+sql_queries = [create_places_table_query, create_users_table_query, create_test_table_query, copy_us_txt_file_query]
 postgres_handler = PostgresDatabaseHandler()
 
 if postgres_handler.execute_sql(sql_queries, close_connection=True):
