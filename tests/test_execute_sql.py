@@ -3,20 +3,28 @@ import pytest
 from database.execute_sql import PostgresDatabaseHandler
 from src.utilities import PostgresCredentials
 
+database_handler = PostgresDatabaseHandler()
+
+
+@pytest.fixture(scope="session", autouse=True)
+def close_connection_after_test():
+    """Closes the database connection after all tests in this module are done."""
+
+    yield
+    database_handler.close_database_connection()
+
 
 @pytest.mark.skipif(PostgresCredentials().empty_credentials, reason="PostgreSQL Database credentials not provided!")
 class TestPostgresDatabaseHandler:
-    database_handler = PostgresDatabaseHandler()
-
     def test_close_database_connection(self):
         """Tests PostgresDatabaseHandler.close_database_connection()."""
 
-        assert not self.database_handler.close_database_connection()
+        assert not database_handler.close_database_connection()
 
     def test_connect_to_database(self):
         """Tests PostgresDatabaseHandler.connect_to_database()."""
 
-        assert not self.database_handler.connect_to_database()
+        assert not database_handler.connect_to_database()
 
     @pytest.mark.parametrize(
         "sql_queries,expected_value,expect_data",
@@ -40,8 +48,8 @@ class TestPostgresDatabaseHandler:
     def test_execute_simple_sql(self, sql_queries, expected_value, expect_data):
         """Tests PostgresDatabaseHandler.execute_simple_sql()."""
 
-        assert self.database_handler.execute_simple_sql(sql_queries=sql_queries) == expected_value
-        data = self.database_handler.cursor.fetchone()
+        assert database_handler.execute_simple_sql(sql_queries=sql_queries) == expected_value
+        data = database_handler.cursor.fetchone()
 
         if expect_data:
             assert data["test_col1"] == "Testing1"
@@ -75,10 +83,10 @@ class TestPostgresDatabaseHandler:
         """Tests PostgresDatabaseHandler.execute_sql_parametrized()."""
 
         assert (
-            self.database_handler.execute_sql_parametrized(sql_queries=sql_queries, query_params=query_params)
+            database_handler.execute_sql_parametrized(sql_queries=sql_queries, query_params=query_params)
             == expected_value
         )
-        data = self.database_handler.cursor.fetchone()
+        data = database_handler.cursor.fetchone()
 
         if expect_data:
             assert data["test_col1"] == "Testing1"
@@ -127,8 +135,8 @@ class TestPostgresDatabaseHandler:
     def test_execute_sql(self, sql_queries, query_params, expected_value, expect_data):
         """Tests PostgresDatabaseHandler.execute_sql()."""
 
-        assert self.database_handler.execute_sql(sql_queries=sql_queries, query_params=query_params) == expected_value
-        data = self.database_handler.cursor.fetchone()
+        assert database_handler.execute_sql(sql_queries=sql_queries, query_params=query_params) == expected_value
+        data = database_handler.cursor.fetchone()
 
         if expect_data:
             assert data["test_col1"] == "Testing1"

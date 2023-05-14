@@ -1,4 +1,5 @@
 from datetime import date, datetime, timedelta
+from decimal import Decimal
 
 import requests
 from pytz import timezone
@@ -26,7 +27,7 @@ class OpenWeatherAPIHandler:
         sql = "SELECT * FROM places WHERE latitude BETWEEN %s AND %s AND longitude BETWEEN %s AND %s;"
 
         # Execute with a margin of safety so we don't have to be extremely precise with latitude/longitude coordinates
-        margin_of_safety = 0.01
+        margin_of_safety = Decimal("0.01")
         params = (
             self.current_latitude - margin_of_safety,
             self.current_latitude + margin_of_safety,

@@ -53,8 +53,8 @@ def incoming_sms():
                 database_handler.execute_sql(sql_queries=sql, query_params=params)
 
                 city_data = database_handler.cursor.fetchone()
-                default_latitude = float(city_data[0])
-                default_longitude = float(city_data[1])
+                default_latitude = city_data["latitude"]
+                default_longitude = city_data["longitude"]
 
                 # Update the users table with the new user's default location
                 sql = (
@@ -110,8 +110,8 @@ def incoming_sms():
                 database_handler.execute_sql(sql_queries=sql, query_params=params)
 
                 city_data = database_handler.cursor.fetchone()
-                new_latitude = float(city_data[0])
-                new_longitude = float(city_data[1])
+                new_latitude = city_data["latitude"]
+                new_longitude = city_data["longitude"]
 
                 # Change location
                 weather_api.change_city(new_latitude, new_longitude)
