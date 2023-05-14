@@ -2,13 +2,13 @@ from flask import Flask, request
 from twilio.twiml.voice_response import VoiceResponse
 
 from database.execute_sql import PostgresDatabaseHandler
-from src.send_message import TwilioHandler
+from src.send_message import TwilioMessageHandler
 from src.weather import OpenWeatherAPIHandler
 
 # Initialize Flask app
 application = Flask(__name__)
 database_handler = PostgresDatabaseHandler()
-twilio = TwilioHandler()
+twilio = TwilioMessageHandler()
 
 
 @application.route("/sms", methods=["POST"])
@@ -130,7 +130,8 @@ def incoming_sms():
             outgoing_message = f"City changed back to default city: {weather_api.current_city}"
 
     # Send the message back to the user
-    twilio.send_message(outgoing_message, outgoing_number=incoming_number, media_url=media_url)
+    if not application.config["TESTING"]:
+        twilio.send_message(outgoing_message, outgoing_number=incoming_number, media_url=media_url)
 
     # Close the database connection
     database_handler.close_database_connection()

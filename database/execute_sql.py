@@ -1,15 +1,17 @@
 import psycopg2
 import psycopg2.extras
 
-from src.utilities import PostgresAuth
+from src.utilities import PostgresCredentials
 
 
 class PostgresDatabaseHandler:
     def __init__(self):
-        self.postgres_auth = PostgresAuth()
+        self.postgres_auth = PostgresCredentials()
         self.database = None
         self.cursor = None
-        self.connect_to_database()
+
+        if self.connect_to_database():
+            raise RuntimeError("Error: Could not connect to database!")
 
     def connect_to_database(self):
         """Method to connect to the Postgres database.

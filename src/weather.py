@@ -4,14 +4,14 @@ import requests
 from pytz import timezone
 
 from database.execute_sql import PostgresDatabaseHandler
-from src.utilities import OpenWeatherAuth
+from src.utilities import OpenWeatherAPICredentials
 
 
 class OpenWeatherAPIHandler:
     def __init__(self, default_latitude=33.684566, default_longitude=-117.826508):
         """Defaults to Irvine, CA."""
 
-        self.open_weather_auth = OpenWeatherAuth()
+        self.open_weather_auth = OpenWeatherAPICredentials()
         self.default_latitude = default_latitude
         self.default_longitude = default_longitude
         self.current_latitude = self.default_latitude
