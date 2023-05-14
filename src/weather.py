@@ -23,7 +23,7 @@ class OpenWeatherAPIHandler:
 
         # Execute query to database
         db_handler = PostgresDatabaseHandler()
-        sql = "SELECT * FROM places WHERE latitude BETWEEN %s AND %s AND longitude BETWEEN %s AND %s"
+        sql = "SELECT * FROM places WHERE latitude BETWEEN %s AND %s AND longitude BETWEEN %s AND %s;"
 
         # Execute with a margin of safety so we don't have to be extremely precise with latitude/longitude coordinates
         margin_of_safety = 0.01

@@ -4,7 +4,7 @@ from database.execute_sql import PostgresDatabaseHandler
 
 us_txt_filepath = os.getcwd() + "/database/US.txt"
 
-create_table_query = """CREATE TABLE IF NOT EXISTS places (
+create_places_table_query = """CREATE TABLE IF NOT EXISTS places (
     country_code CHAR(2),
     postal_code VARCHAR(5),
     place_name VARCHAR(180),
@@ -20,9 +20,17 @@ create_table_query = """CREATE TABLE IF NOT EXISTS places (
     UNIQUE (postal_code, latitude, longitude)
 );"""
 
+create_users_table_query = """CREATE TABLE IF NOT EXISTS users (
+    phone_number VARCHAR(20),
+    default_latitude NUMERIC,
+    default_longitude NUMERIC,
+    current_latitude NUMERIC,
+    current_longitude NUMERIC
+);"""
+
 copy_us_txt_file_query = f"COPY places FROM '{us_txt_filepath}' WITH (FORMAT text, DELIMITER E'\t');"
 
-sql_queries = [create_table_query, copy_us_txt_file_query]
+sql_queries = [create_places_table_query, copy_us_txt_file_query]
 postgres_handler = PostgresDatabaseHandler()
 
 if postgres_handler.execute_sql(sql_queries, close_connection=True):
